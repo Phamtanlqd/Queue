@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>QUEUE — Phiếu học tập & Mô phỏng</title>
+<style>
+:root{
+  --bg:#f1f5f9;--card:#fff;--ink:#0f172a;--muted:#64748b;
+  --primary:#2563eb;--primary2:#1d4ed8;--line:#e2e8f0;
+  --success:#15803d;--warning:#b45309;--danger:#dc2626;
+  --shadow:0 10px 30px rgba(15,23,42,.08);--radius:20px
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.55}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+header{
+  background:linear-gradient(135deg,#0f172a,#1e3a8a);
+  color:#fff;padding:42px 18px 35px
+}
+.container{max-width:1180px;margin:auto;padding:0 18px}
+.badge{display:inline-block;padding:6px 12px;border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;font-size:12px;letter-spacing:.4px;background:rgba(255,255,255,.08)}
+h1{font-size:clamp(30px,5vw,52px);line-height:1.05;margin:16px 0 10px}
+.hero-sub{font-size:18px;max-width:760px;color:#dbeafe}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;background:#fff;color:#0f172a}
+.btn.primary{background:#2563eb;color:#fff}
+.btn.dark{background:#0f172a;color:#fff}
+.btn.outline{background:transparent;border:1px solid #cbd5e1}
+.btn.small{padding:8px 12px;font-size:14px}
+nav{
+  position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)
+}
+.nav-inner{display:flex;gap:8px;overflow:auto;padding:9px 18px}
+.nav-inner a{white-space:nowrap;text-decoration:none;color:#334155;padding:8px 11px;border-radius:10px;font-size:14px}
+.nav-inner a:hover{background:#eaf0ff;color:#1d4ed8}
+main{padding:22px 0 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin:16px 0;box-shadow:var(--shadow)}
+.card h2{margin:0 0 12px;font-size:24px}
+.card h3{margin:18px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.mini{background:#f8fafc;border:1px solid var(--line);border-radius:15px;padding:15px}
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center}
+.flow .node{padding:18px;background:#f8fafc;border:2px solid #bfdbfe;border-radius:16px;text-align:center;font-weight:700}
+.flow .arrow{font-size:25px;color:var(--primary)}
+.ops{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.queue-wrap{padding:20px;background:#0f172a;border-radius:18px;color:#fff;overflow:hidden}
+.queue{display:flex;gap:10px;align-items:center;min-height:86px;overflow:auto;padding:10px}
+.cell{flex:0 0 auto;min-width:58px;padding:15px 12px;text-align:center;border:2px solid #64748b;
+  border-radius:14px;background:#1e293b;font-weight:800}
+.cell.front{border-color:#60a5fa;background:#172554}
+.cell.rear{border-color:#a78bfa}
+.queue-labels{display:flex;justify-content:space-between;color:#94a3b8;font-size:13px;padding:0 10px}
+.status{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.status span{padding:7px 10px;border-radius:999px;background:#1e293b;color:#cbd5e1;font-size:13px}
+.log{max-height:210px;overflow:auto;background:#020617;color:#cbd5e1;border-radius:12px;padding:13px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;white-space:pre-wrap}
+textarea,input,select{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:11px;background:#fff;color:#0f172a}
+textarea{min-height:110px;resize:vertical}
+label{font-weight:700;font-size:14px}
+label span{display:block;margin-bottom:6px}
+.task{border-left:5px solid #2563eb;background:#eff6ff;padding:14px 16px;border-radius:0 14px 14px 0;margin:12px 0}
+.ai{border-left-color:#7c3aed;background:#f5f3ff}
+.challenge{border-left-color:#ea580c;background:#fff7ed}
+.check{display:flex;gap:9px;align-items:flex-start;margin:8px 0;font-weight:400}
+.check input{width:auto;margin-top:5px}
+.progress{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:8px 0}
+.progress i{display:block;height:100%;width:0;background:#2563eb;transition:.3s}
+.small{font-size:13px;color:var(--muted)}
+.good{color:var(--success);font-weight:700}
+.warning{color:var(--warning);font-weight:700}
+.code{background:#0f172a;color:#e2e8f0;border-radius:14px;padding:16px;overflow:auto;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:14px}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+th{background:#f8fafc}
+footer{background:#0f172a;color:#cbd5e1;padding:30px 18px;text-align:center}
+.toast{position:fixed;right:18px;bottom:18px;z-index:50;background:#0f172a;color:white;padding:12px 16px;
+  border-radius:12px;box-shadow:var(--shadow);display:none}
+@media(max-width:760px){
+  .flow{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg);text-align:center}
+  .card{padding:17px;border-radius:17px}
+}
+</style>
+</head>
+<body>
+
+<header id="top">
+  <div class="container">
+    <span class="badge">CHUYÊN TIN 11 • ĐỘI TUYỂN HSG TIN HỌC</span>
+    <h1>QUEUE — HÀNG ĐỢI</h1>
+    <div class="hero-sub">
+      FIFO → Mô phỏng → Cài đặt → BFS → Level Order → Test Engineering → AI Challenge
+    </div>
+    <div class="hero-actions">
+      <a class="btn primary" href="#simulation">🚀 Mô phỏng Queue</a>
+      <a class="btn" href="#worksheet">📋 Phiếu học tập</a>
+      <a class="btn" href="#ai">🤖 AI Challenge</a>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="container nav-inner">
+    <a href="#go">Khởi động</a>
+    <a href="#simulation">Mô phỏng</a>
+    <a href="#implementation">Cài đặt</a>
+    <a href="#bfs">BFS</a>
+    <a href="#tree">Cây</a>
+    <a href="#worksheet">Phiếu học tập</a>
+    <a href="#ai">AI Challenge</a>
+    <a href="#practice">Thực chiến</a>
+    <a href="#self">Tự đánh giá</a>
+  </div>
+</nav>
+
+<main class="container">
+
+<section class="card" id="go">
+  <h2>🎯 1. Khởi động — FIFO</h2>
+  <p>Xếp hàng mua vé • Khám bệnh • Hàng đợi in tài liệu • Hàng đợi máy chủ.</p>
+  <div class="flow">
+    <div class="node">NGƯỜI VÀO<br>QUEUE</div><div class="arrow">→</div>
+    <div class="node">[ 5 | 10 | 20 | 30 ]<br><small>front → rear</small></div><div class="arrow">→</div>
+    <div class="node">NGƯỜI RA<br>QUEUE</div>
+  </div>
+  <div class="task">
+    <b>Câu hỏi:</b> Điểm chung của các tình huống trên là gì?<br>
+    <b>Thông điệp:</b> <strong>FIFO — First In, First Out</strong>.
+  </div>
+</section>
+
+<section class="card" id="simulation">
+  <h2>🚀 2. Web mô phỏng Queue</h2>
+  <p>Hãy thao tác trực tiếp và quan sát <b>front / rear / size / empty</b>.</p>
+  <div class="grid">
+    <div>
+      <label><span>Giá trị muốn push</span><input id="valueInput" type="number" value="5"></label>
+      <div class="ops">
+        <button class="btn primary small" onclick="pushQ()">push(x)</button>
+        <button class="btn dark small" onclick="popQ()">pop()</button>
+        <button class="btn outline small" onclick="frontQ()">front()</button>
+        <button class="btn outline small" onclick="resetQ()">Reset</button>
+      </div>
+      <p id="operationMessage" class="small">Sẵn sàng.</p>
+    </div>
+    <div>
+      <h3>Chuỗi thao tác mẫu</h3>
+      <div class="ops">
+        <button class="btn small" onclick="runDemo()">▶ Chạy: 5,10,20,pop,30</button>
+      </div>
+      <p class="small">Mục tiêu: dự đoán trước rồi mới chạy mô phỏng.</p>
+    </div>
+  </div>
+
+  <div class="queue-wrap">
+    <div class="queue-labels"><span>← FRONT</span><span>REAR →</span></div>
+    <div id="queueVisual" class="queue"></div>
+    <div class="status">
+      <span id="frontStatus">front = ∅</span>
+      <span id="rearStatus">rear = ∅</span>
+      <span id="sizeStatus">size = 0</span>
+      <span id="emptyStatus">empty = true</span>
+    </div>
+  </div>
+
+  <h3>Operation Log</h3>
+  <div id="operationLog" class="log">Chưa có thao tác.</div>
+</section>
+
+<section class="card" id="implementation">
+  <h2>💻 3. Cài đặt Queue</h2>
+  <div class="grid">
+    <div class="mini"><b>Queue bằng mảng</b><p>Dùng chỉ số front/rear và tránh dịch toàn bộ phần tử sau mỗi pop.</p></div>
+    <div class="mini"><b>Circular Queue</b><p>Tái sử dụng ô trống bằng phép modulo.</p></div>
+    <div class="mini"><b>std::queue</b><p>API giới hạn đúng mô hình FIFO: push, pop, front, empty, size.</p></div>
+  </div>
+  <div class="code">#include &lt;queue&gt;
+using namespace std;
+
+queue&lt;int&gt; q;
+
+q.push(x);
+q.pop();
+q.front();
+q.empty();
+q.size();</div>
+  <div class="task challenge">
+    <b>Challenge:</b> Vì sao không nên dịch toàn bộ mảng sau mỗi lần pop nếu muốn Queue hoạt động hiệu quả?
+  </div>
+</section>
+
+<section class="card" id="bfs">
+  <h2>🧠 4. Queue trong đồ thị — BFS</h2>
+  <div class="flow">
+    <div class="node">GRAPH</div><div class="arrow">→</div>
+    <div class="node">QUEUE</div><div class="arrow">→</div>
+    <div class="node">VISIT → EXPAND</div>
+  </div>
+  <h3>Ý tưởng</h3>
+  <ol>
+    <li>Đánh dấu đỉnh nguồn và <code>push(s)</code>.</li>
+    <li>Trong khi Queue chưa rỗng: lấy <code>u</code>.</li>
+    <li>Xét các đỉnh kề <code>v</code>.</li>
+    <li>Nếu chưa thăm: đánh dấu ngay, cập nhật <code>dist[v]</code>, rồi <code>push(v)</code>.</li>
+  </ol>
+  <div class="task">
+    <b>Phản biện HSG:</b> Tại sao nên đánh dấu <code>visited</code> khi <b>enqueue</b> thay vì chờ đến khi <b>dequeue</b>?
+  </div>
+</section>
+
+<section class="card" id="tree">
+  <h2>🌳 5. Queue trong cây — Level Order</h2>
+  <p>Level Order chính là tư duy BFS trên cây.</p>
+  <div class="grid">
+    <div class="mini"><b>Level 0</b><br>1</div>
+    <div class="mini"><b>Level 1</b><br>2, 3</div>
+    <div class="mini"><b>Level 2</b><br>4, 5, 6</div>
+  </div>
+  <div class="task">
+    <b>Observation:</b> Với cây: 1 là gốc; 2,3 là con; 4,5 là con của 2; 6 là con của 3.
+    Hãy tự ghi Queue sau từng lần pop và dự đoán thứ tự Level Order.
+  </div>
+  <textarea id="treeAnswer" placeholder="Ghi quá trình mô phỏng của bạn..."></textarea>
+</section>
+
+<section class="card" id="worksheet">
+  <h2>📋 6. Phiếu học tập Online</h2>
+  <h3>Observation</h3>
+  <p>Chuỗi: <b>push(5), push(10), push(20), pop(), push(30)</b>.</p>
+  <div class="grid">
+    <label><span>Trạng thái sau push(5)</span><input id="a1"></label>
+    <label><span>Sau push(10)</span><input id="a2"></label>
+    <label><span>Sau push(20)</span><input id="a3"></label>
+    <label><span>Sau pop()</span><input id="a4"></label>
+    <label><span>Sau push(30)</span><input id="a5"></label>
+    <label><span>front cuối cùng</span><input id="a6"></label>
+  </div>
+
+  <h3>🧠 Invariant</h3>
+  <div class="task">
+    Các phần tử còn lại phải giữ nguyên <b>thứ tự tương đối</b>.
+    <br>push(x) thêm ở cuối; pop() loại phần tử ở đầu.
+  </div>
+
+  <h3>🚀 Challenge</h3>
+  <textarea id="challengeAnswer" placeholder="Viết lập luận của bạn..."></textarea>
+
+  <h3>🔬 Test Engineering</h3>
+  <div class="grid">
+    <label class="check"><input type="checkbox" id="t1"> Tôi có test Queue rỗng.</label>
+    <label class="check"><input type="checkbox" id="t2"> Tôi có test 1 phần tử.</label>
+    <label class="check"><input type="checkbox" id="t3"> Tôi có test push/pop xen kẽ.</label>
+    <label class="check"><input type="checkbox" id="t4"> Tôi có test dữ liệu lớn.</label>
+    <label class="check"><input type="checkbox" id="t5"> Tôi có test circular wrap-around.</label>
+    <label class="check"><input type="checkbox" id="t6"> Tôi có test BFS có chu trình.</label>
+  </div>
+</section>
+
+<section class="card" id="ai">
+  <h2>🤖 7. AI Challenge</h2>
+
+  <div class="task ai">
+    <h3>AI M2 — Test Engineering</h3>
+    <p><b>Prompt:</b> “Hãy tạo 10 test cho bài Queue. Phân loại test thành cơ bản, biên, ngẫu nhiên, phản chứng. Chỉ ra ít nhất 3 tình huống còn thiếu.”</p>
+    <p class="small">Nhiệm vụ học sinh: không tin ngay kết quả AI; chạy/kiểm chứng test và tìm lỗ hổng.</p>
+  </div>
+
+  <div class="task ai">
+    <h3>AI M3 — Debugging</h3>
+    <p><b>Prompt:</b> “Hãy tìm lỗi trong chương trình Queue. Trước khi sửa, hãy tạo một input nhỏ làm chương trình sai. Nêu output thực tế, output đúng, nguyên nhân và cách sửa.”</p>
+  </div>
+
+  <div class="task ai">
+    <h3>AI M4 — Socratic</h3>
+    <p><b>Prompt:</b> “Hãy đặt 5 câu hỏi phản biện về Queue và BFS, từ dễ đến khó. Chờ tôi trả lời từng câu rồi mới đánh giá.”</p>
+  </div>
+
+  <label><span>Ghi prompt / kết quả AI / điều bạn đã kiểm chứng</span>
+    <textarea id="aiAnswer" placeholder="Không đưa dữ liệu cá nhân vào prompt..."></textarea>
+  </label>
+</section>
+
+<section class="card" id="practice">
+  <h2>🏆 8. Thực chiến HSG</h2>
+  <div class="grid">
+    <div class="mini"><b>Mức 1</b><p>Queue cơ bản: thao tác và truy vấn.</p></div>
+    <div class="mini"><b>Mức 2</b><p>Mô phỏng bệnh viện / ngân hàng / máy in.</p></div>
+    <div class="mini"><b>Mức 3</b><p>BFS và khoảng cách từ nguồn.</p></div>
+    <div class="mini"><b>Mức 4</b><p>Level Order và tổng từng mức.</p></div>
+    <div class="mini"><b>Mức 5</b><p>Multi-server Queue / Router Buffer.</p></div>
+    <div class="mini"><b>HSG</b><p>Generator + Oracle + Benchmark + phản chứng BFS.</p></div>
+  </div>
+
+  <h3>Complexity</h3>
+  <table>
+    <thead><tr><th>Thao tác</th><th>Độ phức tạp mục tiêu</th></tr></thead>
+    <tbody>
+      <tr><td>push</td><td><b>O(1)</b></td></tr>
+      <tr><td>pop</td><td><b>O(1)</b></td></tr>
+      <tr><td>front</td><td><b>O(1)</b></td></tr>
+      <tr><td>empty / size</td><td><b>O(1)</b></td></tr>
+      <tr><td>BFS</td><td><b>O(V + E)</b> với danh sách kề</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card" id="self">
+  <h2>✅ 9. Tự đánh giá</h2>
+  <div class="grid">
+    <label><span>FIFO</span><select class="rate"><option value="1">1 — Chưa chắc</option><option value="2">2 — Đang phát triển</option><option value="3">3 — Khá</option><option value="4">4 — Thành thạo</option></select></label>
+    <label><span>Queue API</span><select class="rate"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+    <label><span>Circular Queue</span><select class="rate"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+    <label><span>BFS</span><select class="rate"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+    <label><span>Testing</span><select class="rate"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+    <label><span>AI Verification</span><select class="rate"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+  </div>
+  <div class="progress"><i id="progressBar"></i></div>
+  <p id="progressText" class="small">Mức độ hiện tại: 0%</p>
+  <div class="ops">
+    <button class="btn primary" onclick="saveAll()">💾 Lưu kết quả</button>
+    <button class="btn outline" onclick="loadAll()">↻ Khôi phục</button>
+    <button class="btn outline" onclick="exportResult()">📄 Xuất báo cáo</button>
+  </div>
+  <p id="saveStatus" class="small"></p>
+</section>
+
+<section class="card">
+  <h2>🌱 Đạo đức AI</h2>
+  <div class="grid">
+    <div class="mini">✅ Không sao chép lời giải AI.</div>
+    <div class="mini">✅ Kiểm chứng mọi kết quả AI.</div>
+    <div class="mini">✅ Tôn trọng bản quyền.</div>
+    <div class="mini">✅ Bảo vệ dữ liệu cá nhân.</div>
+    <div class="mini">✅ Minh bạch khi sử dụng AI.</div>
+    <div class="mini"><b>AI hỗ trợ ≠ AI làm hộ.</b></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>🎯 Kết luận</h2>
+  <p style="font-size:20px"><b>“Queue không chỉ là cấu trúc dữ liệu.</b></p>
+  <p style="font-size:20px"><b>Queue là mô hình tư duy giúp xử lý các bài toán theo đúng thứ tự xuất hiện của thông tin.”</b></p>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    QUEUE • Chuyên Tin 11 • Đội tuyển HSG Tin học<br>
+    <span class="small">GitHub Pages ready • Dữ liệu học sinh được lưu cục bộ trên trình duyệt</span>
+  </div>
+</footer>
+<div id="toast" class="toast"></div>
+
+<script>
+const KEY="queue_hsg_online_v2";
+let queue=[];
+let logs=[];
+
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.style.display="block";
+  clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.style.display="none",1800);
+}
+function renderQueue(){
+  const box=document.getElementById("queueVisual");
+  if(!queue.length){
+    box.innerHTML='<div style="color:#94a3b8;padding:15px">Queue đang rỗng — ∅</div>';
+  }else{
+    box.innerHTML=queue.map((x,i)=>{
+      const cls=i===0&&i===queue.length-1?"cell front rear":i===0?"cell front":i===queue.length-1?"cell rear":"cell";
+      return `<div class="${cls}">${escapeHtml(String(x))}</div>`;
+    }).join("");
+  }
+  document.getElementById("frontStatus").textContent="front = "+(queue[0]??"∅");
+  document.getElementById("rearStatus").textContent="rear = "+(queue.at(-1)??"∅");
+  document.getElementById("sizeStatus").textContent="size = "+queue.length;
+  document.getElementById("emptyStatus").textContent="empty = "+(queue.length===0);
+  document.getElementById("operationLog").textContent=logs.length?logs.join("\n"):"Chưa có thao tác.";
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function pushQ(v=null){
+  if(v===null)v=Number(document.getElementById("valueInput").value);
+  if(Number.isNaN(v))return;
+  queue.push(v);logs.push(`push(${v}) → [${queue.join(", ")}]`);
+  document.getElementById("operationMessage").textContent=`Đã thêm ${v} vào REAR.`;
+  renderQueue();
+}
+function popQ(){
+  if(!queue.length){
+    logs.push("pop() → ERROR: Queue rỗng");
+    document.getElementById("operationMessage").textContent="Không thể pop: Queue đang rỗng.";
+  }else{
+    const x=queue.shift();logs.push(`pop() → ${x} | [${queue.join(", ")}]`);
+    document.getElementById("operationMessage").textContent=`pop() lấy phần tử FRONT = ${x}.`;
+  }
+  renderQueue();
+}
+function frontQ(){
+  const x=queue[0];
+  logs.push(`front() → ${x??"ERROR: Queue rỗng"}`);
+  document.getElementById("operationMessage").textContent=x===undefined?"Queue rỗng.":`front() = ${x}.`;
+  renderQueue();
+}
+function resetQ(){queue=[];logs=[];document.getElementById("operationMessage").textContent="Đã reset.";renderQueue();}
+async function runDemo(){
+  resetQ();
+  const actions=[()=>pushQ(5),()=>pushQ(10),()=>pushQ(20),popQ,()=>pushQ(30)];
+  for(const a of actions){a();await new Promise(r=>setTimeout(r,500));}
+  toast("Demo hoàn tất: [10, 20, 30]");
+}
+function collect(){
+  const obj={};
+  ["a1","a2","a3","a4","a5","a6","treeAnswer","challengeAnswer","aiAnswer"].forEach(id=>obj[id]=document.getElementById(id)?.value||"");
+  ["t1","t2","t3","t4","t5","t6"].forEach(id=>obj[id]=document.getElementById(id)?.checked||false);
+  obj.ratings=[...document.querySelectorAll(".rate")].map(x=>x.value);
+  obj.queue=queue;obj.logs=logs;obj.savedAt=new Date().toLocaleString("vi-VN");
+  return obj;
+}
+function apply(obj){
+  if(!obj)return;
+  Object.keys(obj).forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    if(el.type==="checkbox")el.checked=!!obj[id];else el.value=obj[id]??"";
+  });
+  if(Array.isArray(obj.ratings))document.querySelectorAll(".rate").forEach((x,i)=>x.value=obj.ratings[i]||"1");
+  queue=Array.isArray(obj.queue)?obj.queue:[];
+  logs=Array.isArray(obj.logs)?obj.logs:[];
+  renderQueue();updateProgress();
+}
+function saveAll(){
+  const obj=collect();localStorage.setItem(KEY,JSON.stringify(obj));
+  document.getElementById("saveStatus").textContent="✓ Đã lưu vào trình duyệt lúc "+obj.savedAt;
+  toast("Đã lưu kết quả");
+}
+function loadAll(){
+  try{const obj=JSON.parse(localStorage.getItem(KEY)||"null");apply(obj);document.getElementById("saveStatus").textContent=obj?"✓ Đã khôi phục dữ liệu.":"Chưa có dữ liệu lưu.";toast(obj?"Đã khôi phục":"Chưa có dữ liệu");}
+  catch(e){toast("Không đọc được dữ liệu");}
+}
+function updateProgress(){
+  const vals=[...document.querySelectorAll(".rate")].map(x=>Number(x.value));
+  const pct=Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length*4)*100);
+  document.getElementById("progressBar").style.width=pct+"%";
+  document.getElementById("progressText").textContent=`Mức độ hiện tại: ${pct}%`;
+}
+document.querySelectorAll(".rate").forEach(x=>x.addEventListener("change",updateProgress));
+
+function exportResult(){
+  const d=collect();
+  let text=`BÁO CÁO HỌC TẬP — QUEUE\n`;
+  text+=`Thời gian: ${d.savedAt}\n\n`;
+  text+=`OBSERVATION:\n`;
+  ["a1","a2","a3","a4","a5","a6"].forEach((id,i)=>text+=`${i+1}. ${d[id]}\n`);
+  text+=`\nTREE:\n${d.treeAnswer}\n\nCHALLENGE:\n${d.challengeAnswer}\n\nAI CHALLENGE:\n${d.aiAnswer}\n\nTỰ ĐÁNH GIÁ: ${d.ratings.join(" / ")}\n`;
+  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Bao_cao_QUEUE.txt";a.click();
+  URL.revokeObjectURL(a.href);toast("Đã xuất báo cáo");
+}
+
+window.addEventListener("load",()=>{
+  renderQueue();loadAll();updateProgress();
+});
+</script>
+</body>
+</html>
